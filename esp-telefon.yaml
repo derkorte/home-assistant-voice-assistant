@@ -1,0 +1,141 @@
+esphome:
+  name: esp-siemens-w48 #choose your own
+  friendly_name: Siemens W48 #choose your own
+  on_boot:
+    - priority: -100
+      then:
+        - wait_until: api.connected
+        - delay: 3s
+        - speaker.play:
+            data: [0x00, 0x00]  # Knacken verhindern
+
+esp32:
+  board: esp32dev
+  framework:
+    type: esp-idf
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: "your_encryption_key"
+
+ota:
+  - platform: esphome
+    password: "your_password"
+
+wifi:
+  ssid: !secret wifi_ssid #type in your ssid if not using secret file
+  password: !secret wifi_password #type in your password if not using password file
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Esp-waelscheibentelefon"
+    password: "your_pasword"
+
+captive_portal:
+
+# Gabelkontakt – erkennt ob der Hörer aufgelegt ist (GPIO26 gegen GND)
+binary_sensor:
+  - platform: gpio
+    pin:
+      number: GPIO16
+      mode: INPUT_PULLUP
+      inverted: true
+    name: "Gabelkontakt"
+    id: gabelkontakt
+    on_press:
+      then:
+        - logger.log: "Hörer abgenommen → Sprachassistent wird aktiviert"
+        - voice_assistant.start:
+    on_release:
+      then:
+        - logger.log: "Hörer aufgelegt → Sprachassistent wird deaktiviert"
+        - voice_assistant.stop:
+
+  - platform: gpio
+    pin:
+      number: GPIO25
+      mode: INPUT_PULLUP
+    name: "Wählscheibe Impuls"
+    id: waehlscheibe_impuls
+    filters:
+      - delayed_off: 30ms
+      - invert:
+    on_press:
+      then:
+        - logger.log: "Impuls erkannt"
+        - lambda: |-
+            id(impulse_count) += 1;
+        - script.execute: waehlscheibe_timeout
+
+
+# I2S Konfiguration für Mikrofon und Lautsprecher
+i2s_audio:
+  - id: i2s_in
+    i2s_lrclk_pin: GPIO32
+    i2s_bclk_pin: GPIO14
+  - id: i2s_out
+    i2s_lrclk_pin: GPIO13
+    i2s_bclk_pin: GPIO18
+
+# Mikrofon (INMP441)
+microphone:
+  - platform: i2s_audio
+    id: mic
+    i2s_audio_id: i2s_in
+    i2s_din_pin: GPIO27
+    adc_type: external
+    pdm: false
+    channel: left
+    
+
+# Lautsprecher (MAX98357A)
+speaker:
+  - platform: i2s_audio
+    id: speaker_out
+    i2s_audio_id: i2s_out
+    i2s_dout_pin: GPIO33
+    dac_type: external
+    i2s_mode: primary
+    channel: mono
+
+# Sprachassistent
+voice_assistant:
+  microphone: mic
+  id: assistant
+  speaker: speaker_out
+  use_wake_word: False
+  noise_suppression_level: 2
+  auto_gain: 31dBFS
+  volume_multiplier: 2.0
+
+globals:
+  - id: impulse_count
+    type: int
+    restore_value: no
+    initial_value: '0'
+
+script:
+  - id: waehlscheibe_timeout
+    mode: restart
+    then:
+      - delay: 500ms
+      - lambda: |-
+          int number = id(impulse_count);
+          if (number == 10) number = 0;
+          ESP_LOGI("dial", "Gewählte Ziffer: %d", number);
+          id(impulse_count) = number;  // speichere Ziffer im globalen Zähler (wird gleich gesendet)
+      - homeassistant.event:
+          event: esphome.waehlscheibe_ziffer
+          data:
+            nummer: !lambda 'return id(impulse_count);'
+      - lambda: |-
+          id(impulse_count) = 0;
+
+
+  
+
+
