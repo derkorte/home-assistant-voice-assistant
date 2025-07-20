@@ -92,3 +92,33 @@ action:
     data:
       message: "You dialed the number {{ trigger.event.data.nummer }}"
 mode: single
+
+
+
+## 🛠️ Build Instructions
+
+### 1. Prepare the Phone
+
+- Open the Siemens W48 housing
+- Remove the original electronics (leave the handset, speaker, dial)
+
+### 2. Mount the ESP32
+
+- Use double-sided tape or screws
+- Ensure access to USB if needed
+
+### 3. Wiring
+
+- Connect the handset switch to GPIO16
+- Connect the rotary dial pulse output to GPIO25
+- Wire the I2S mic (INMP441) to GPIO32, GPIO14, GPIO27
+- Wire the speaker DAC (MAX98357A) to GPIO13, GPIO18, GPIO33
+
+### 4. Power
+
+- Use USB 5V or buck converter from wall adapter
+
+### 5. Flash the YAML
+
+- Flash `esp-telefon.yaml` via ESPHome
+- Connect to Home Assistant
