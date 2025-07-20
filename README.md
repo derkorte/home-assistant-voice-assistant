@@ -101,11 +101,13 @@ mode: single
 
 - Open the Siemens W48 housing
 - Remove the original electronics (leave the handset, speaker, dial)
+- Remove the four-core cable to the handset
 
 ### 2. Mount the ESP32
 
 - Use double-sided tape or screws
 - Ensure access to USB if needed
+- The network cable runs from the ESP to the handset (I had to enlarge the opening on the handset slightly)
 
 ### 3. Wiring
 
