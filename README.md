@@ -1,6 +1,6 @@
 # Home Assistant Voice Assistant (Rotary Phone Edition)
 
-![Project Image](images/phone.jpg)
+![Siemens_W48](https://github.com/user-attachments/assets/3ee3ac31-729b-4c16-94d3-c70e21f779ed)
 
 This project transforms a vintage **Siemens W48 rotary phone** into a modern, voice-controlled assistant using **ESPHome**, **ESP32**, and **Home Assistant Assist** (powered by OpenAI). Lift the handset, speak naturally, and hear responses through the original receiver.
 
