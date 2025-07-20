@@ -93,8 +93,8 @@ action:
       message: "You dialed the number {{ trigger.event.data.nummer }}"
 mode: single
 
-
-
+------------------------------------------------------------------------
+>
 ## 🛠️ Build Instructions
 
 ### 1. Prepare the Phone
